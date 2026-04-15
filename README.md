@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 # UNIV_SCHEDULER
+=======
+# UNIV-SCHEDULER 🎓
+
+>>>>>>> 7d976ad1d656f0be33ae5cb65bc48781efe5c1ee
 Application de Gestion Intelligente des Salles et des Emplois du Temps à l'Université
 
 ## 📋 Description
@@ -28,4 +33,8 @@ Sokhna Marieme Gueye et Moukhamed Lamine LO
 1. **Cloner le dépôt**
 ```bash
 git clone https://github.com/votre-username/UNIV-SCHEDULER.git
+<<<<<<< HEAD
 cd UNIV-SCHEDULER# UNIV_SCHEDULER
+=======
+cd UNIV-SCHEDULER# UNIV_SCHEDULER
+>>>>>>> 7d976ad1d656f0be33ae5cb65bc48781efe5c1ee
