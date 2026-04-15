@@ -6,96 +6,93 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SalleDAO {
-    
-    public List<Salle> findAll() {
-        List<Salle> salles = new ArrayList<>();
-        String query = "SELECT * FROM salles";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            
-            while (rs.next()) {
-                Salle salle = new Salle();
-                salle.setId(rs.getInt("id"));
-                salle.setNumero(rs.getString("numero"));
-                salle.setCapacite(rs.getInt("capacite"));
-                salle.setBatiment(rs.getString("batiment"));
-                salles.add(salle);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return salles;
+    private Connection connection;
+
+    public SalleDAO() {
+        try { this.connection = DatabaseConnection.getConnection(); }
+        catch (SQLException e) { e.printStackTrace(); }
     }
-    
+
+    public List<Salle> findAll() {
+        List<Salle> list = new ArrayList<>();
+        String sql = "SELECT * FROM salles";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) list.add(map(rs));
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
     public Salle findById(int id) {
-        String query = "SELECT * FROM salles WHERE id = ?";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            
-            pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                Salle salle = new Salle();
-                salle.setId(rs.getInt("id"));
-                salle.setNumero(rs.getString("numero"));
-                salle.setCapacite(rs.getInt("capacite"));
-                salle.setBatiment(rs.getString("batiment"));
-                return salle;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        String sql = "SELECT * FROM salles WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return map(rs);
+        } catch (SQLException e) { e.printStackTrace(); }
         return null;
     }
-    
-    public void save(Salle salle) {
-        String query = "INSERT INTO salles (numero, capacite, batiment) VALUES (?, ?, ?)";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            
-            pstmt.setString(1, salle.getNumero());
-            pstmt.setInt(2, salle.getCapacite());
-            pstmt.setString(3, salle.getBatiment());
-            pstmt.executeUpdate();
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
+    public boolean ajouterSalle(Salle salle) {
+        String sql = "INSERT INTO salles (code, nom, batiment, etage, capacite, type, equipements, statut) VALUES (?,?,?,?,?,?,?,?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, salle.getCode());
+            stmt.setString(2, salle.getNom());
+            stmt.setString(3, salle.getBatiment());
+            stmt.setInt(4, salle.getEtage());
+            stmt.setInt(5, salle.getCapacite());
+            stmt.setString(6, salle.getType());
+            stmt.setString(7, salle.getEquipements());
+            stmt.setString(8, salle.getStatut());
+            int affected = stmt.executeUpdate();
+            if (affected > 0) {
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) salle.setId(rs.getInt(1));
+                return true;
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
     }
 
-	public List<Salle> rechercher1(Integer capaciteMin, String type, String batiment) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public List<Salle> findDisponibles() {
+        List<Salle> list = new ArrayList<>();
+        String sql = "SELECT * FROM salles WHERE statut = 'DISPONIBLE'";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) list.add(map(rs));
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
 
-	public boolean verifierDisponibilite(int salleId, String date, String heureDebut, String heureFin) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    public List<Salle> rechercher(Integer capaciteMin, String type, String batiment) {
+        // Simplifié pour l'exemple
+        return findAll();
+    }
 
-	public boolean updateStatut(int id, String statut) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    public boolean verifierDisponibilite(int salleId, String date, String heureDebut, String heureFin) {
+        // À implémenter avec table reservations
+        return true;
+    }
 
-	public List<Salle> rechercher(Integer capaciteMin, String type, String batiment) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public boolean updateStatut(int id, String statut) {
+        String sql = "UPDATE salles SET statut = ? WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, statut);
+            stmt.setInt(2, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
 
-	public boolean ajouterSalle(Salle salle) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public List<Salle> findDisponibles() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
+    private Salle map(ResultSet rs) throws SQLException {
+        Salle s = new Salle();
+        s.setId(rs.getInt("id"));
+        s.setCode(rs.getString("code"));
+        s.setNom(rs.getString("nom"));
+        s.setBatiment(rs.getString("batiment"));
+        s.setEtage(rs.getInt("etage"));
+        s.setCapacite(rs.getInt("capacite"));
+        s.setType(rs.getString("type"));
+        s.setEquipements(rs.getString("equipements"));
+        s.setStatut(rs.getString("statut"));
+        return s;
+    }
 }

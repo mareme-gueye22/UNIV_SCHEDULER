@@ -5,215 +5,176 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import model.Etudiant;
 
+@SuppressWarnings("unused")
 public class EtudiantDashboard extends JFrame {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    
     private Etudiant etudiantConnecte;
-    private JTabbedPane tabbedPane;
-    private DefaultTableModel tableModelEmploi;
+    private JPanel contentPanel;
+    private CardLayout cardLayout;
     
     public EtudiantDashboard(Etudiant etudiant) {
         this.etudiantConnecte = etudiant;
         initUI();
     }
     
-    @SuppressWarnings("unused")
-	private void initUI() {
-        setTitle("UNIV-SCHEDULER - Dashboard Étudiant : " + etudiantConnecte.getNom());
+    private void initUI() {
+        setTitle("UNIV-SCHEDULER - Étudiant : " + etudiantConnecte.getNom());
         setSize(1100, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
         
-        // Menu
-        JMenuBar menuBar = new JMenuBar();
-        JMenu fichierMenu = new JMenu("Fichier");
-        JMenuItem deconnexionItem = new JMenuItem("Déconnexion");
-        fichierMenu.add(deconnexionItem);
-        menuBar.add(fichierMenu);
-        setJMenuBar(menuBar);
+        JPanel menuPanel = createMenuPanel();
+        add(menuPanel, BorderLayout.WEST);
         
-        deconnexionItem.addActionListener(e -> deconnexion());
+        cardLayout = new CardLayout();
+        contentPanel = new JPanel(cardLayout);
+        contentPanel.add(createEmploiDuTempsPanel(), "EMPLOI");
+        contentPanel.add(createRechercheSallePanel(), "RECHERCHE");
+        contentPanel.add(createNotesPanel(), "NOTES");
+        contentPanel.add(createProfilPanel(), "PROFIL");
+        add(contentPanel, BorderLayout.CENTER);
         
-        // Onglets
-        tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("📅 Emploi du temps", createEmploiDuTempsPanel());
-        tabbedPane.addTab("🔍 Rechercher salle", createRechercheSallePanel());
-        tabbedPane.addTab("📚 Mes cours", createMesCoursPanel());
-        tabbedPane.addTab("👤 Mon profil", createProfilPanel());
+        cardLayout.show(contentPanel, "EMPLOI");
+    }
+    
+    @SuppressWarnings("unused")
+	private JPanel createMenuPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(new Color(155, 89, 182));
+        panel.setPreferredSize(new Dimension(200, 0));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 10, 5, 10);
         
-        add(tabbedPane);
+        JLabel title = new JLabel("ÉTUDIANT");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setForeground(Color.WHITE);
+        gbc.insets = new Insets(20, 10, 20, 10);
+        panel.add(title, gbc);
+        
+        String[] items = {"📅 Emploi du temps", "🔍 Rechercher salle", "📚 Mes notes", "👤 Profil"};
+        String[] cards = {"EMPLOI", "RECHERCHE", "NOTES", "PROFIL"};
+        for (int i = 0; i < items.length; i++) {
+            JButton btn = new JButton(items[i]);
+            btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            btn.setForeground(Color.WHITE);
+            btn.setBackground(new Color(155, 89, 182));
+            btn.setBorderPainted(false);
+            btn.setHorizontalAlignment(SwingConstants.LEFT);
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            final String card = cards[i];
+            btn.addActionListener(e -> cardLayout.show(contentPanel, card));
+            panel.add(btn, gbc);
+        }
+        gbc.weighty = 1.0;
+        panel.add(Box.createVerticalGlue(), gbc);
+        JButton logout = new JButton("🚪 Déconnexion");
+        logout.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        logout.setForeground(Color.WHITE);
+        logout.setBackground(new Color(192, 57, 43));
+        logout.addActionListener(e -> deconnexion());
+        panel.add(logout, gbc);
+        return panel;
     }
     
     private JPanel createEmploiDuTempsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(Color.WHITE);
         
-        // En-tête avec info classe
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel infoClasse = new JLabel("Classe: " + etudiantConnecte.getFiliere() + " " + 
-                                       etudiantConnecte.getNiveau() + " - Groupe " + 
-                                       etudiantConnecte.getGroupe());
-        infoClasse.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        headerPanel.add(infoClasse);
-        panel.add(headerPanel, BorderLayout.NORTH);
+        JLabel info = new JLabel("Classe: " + etudiantConnecte.getFiliere() + " " + etudiantConnecte.getNiveau() + " - Groupe " + etudiantConnecte.getGroupe());
+        info.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        panel.add(info, BorderLayout.NORTH);
         
-        // Tableau emploi du temps
         String[] colonnes = {"Jour", "Horaire", "Matière", "Enseignant", "Salle"};
         Object[][] donnees = {
-            {"Lundi", "08h-10h", "Programmation Java", "Dr. Martin", "A101"},
-            {"Lundi", "10h-12h", "Base de données", "Dr. Bernard", "A105"},
-            {"Mardi", "08h-10h", "Réseaux", "Dr. Dubois", "B201"},
-            {"Mercredi", "14h-16h", "Algorithmique", "Dr. Petit", "C103"},
-            {"Jeudi", "10h-12h", "Anglais technique", "Dr. Smith", "B205"},
-            {"Vendredi", "08h-12h", "Projet", "Dr. Martin", "TP Info"}
+            {"Lundi", "08h-10h", "Java", "Dr. Martin", "A101"},
+            {"Lundi", "10h-12h", "BD", "Dr. Bernard", "A105"},
+            {"Mardi", "08h-10h", "Réseaux", "Dr. Dubois", "B201"}
         };
-        
-        tableModelEmploi = new DefaultTableModel(donnees, colonnes);
-        JTable table = new JTable(tableModelEmploi);
+        JTable table = new JTable(donnees, colonnes);
         table.setRowHeight(35);
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        
-        JScrollPane scrollPane = new JScrollPane(table);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
         return panel;
     }
     
     private JPanel createRechercheSallePanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        
-        JLabel titre = new JLabel("Rechercher une salle libre pour étudier");
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(Color.WHITE);
+        JLabel titre = new JLabel("Rechercher une salle libre");
         titre.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        titre.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panel.add(titre, BorderLayout.NORTH);
         
-        // Panneau recherche
-        JPanel recherchePanel = new JPanel(new FlowLayout());
-        recherchePanel.add(new JLabel("Date:"));
-        JTextField dateField = new JTextField("04/03/2026", 10);
-        recherchePanel.add(dateField);
+        JPanel search = new JPanel(new FlowLayout());
+        search.add(new JLabel("Date:"));
+        search.add(new JTextField("08/03/2026", 8));
+        search.add(new JButton("Rechercher"));
+        panel.add(search, BorderLayout.CENTER);
         
-        recherchePanel.add(new JLabel("Période:"));
-        String[] periodes = {"Matin (8h-12h)", "Après-midi (14h-18h)", "Soir (18h-20h)"};
-        JComboBox<String> periodeCombo = new JComboBox<>(periodes);
-        recherchePanel.add(periodeCombo);
-        
-        JButton rechercherButton = new JButton("Rechercher");
-        recherchePanel.add(rechercherButton);
-        
-        panel.add(recherchePanel, BorderLayout.CENTER);
-        
-        // Résultats
-        String[] colonnes = {"Salle", "Bâtiment", "Capacité", "Disponibilité", "Action"};
+        String[] colonnes = {"Salle", "Bâtiment", "Disponibilité"};
         Object[][] donnees = {
-            {"A108", "A", "30 places", "8h-20h", "Réserver"},
-            {"B215", "B", "20 places", "14h-18h", "Réserver"},
-            {"Bibliothèque", "C", "50 places", "8h-22h", "Accès libre"}
+            {"A108", "A", "8h-20h"},
+            {"B215", "B", "14h-18h"},
+            {"Bibliothèque", "C", "8h-22h"}
         };
-        
-        JTable resultatsTable = new JTable(donnees, colonnes);
-        panel.add(new JScrollPane(resultatsTable), BorderLayout.SOUTH);
-        
+        JTable table = new JTable(donnees, colonnes);
+        panel.add(new JScrollPane(table), BorderLayout.SOUTH);
         return panel;
     }
     
-    private JPanel createMesCoursPanel() {
+    private JPanel createNotesPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        
-        JLabel titre = new JLabel("Mes notes et absences");
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(Color.WHITE);
+        JLabel titre = new JLabel("Mes notes");
         titre.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        titre.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panel.add(titre, BorderLayout.NORTH);
         
-        // Tableau des notes
-        String[] colonnesNotes = {"Matière", "Coefficient", "Note", "Appréciation"};
-        Object[][] donneesNotes = {
-            {"Programmation Java", "3", "15/20", "Bien"},
-            {"Base de données", "2", "12/20", "Assez bien"},
-            {"Réseaux", "2", "08/20", "Insuffisant"},
-            {"Algorithmique", "3", "14/20", "Bien"}
+        String[] colonnes = {"Matière", "Note", "Appréciation"};
+        Object[][] donnees = {
+            {"Java", "15/20", "Bien"},
+            {"BD", "12/20", "Assez bien"},
+            {"Réseaux", "08/20", "Insuffisant"}
         };
-        
-        JTable notesTable = new JTable(donneesNotes, colonnesNotes);
-        notesTable.setRowHeight(30);
-        
-        JScrollPane scrollPane = new JScrollPane(notesTable);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
-        // Statistiques
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3));
-        statsPanel.add(creerStatCard("Moyenne générale", "12.5/20", new Color(52, 152, 219)));
-        statsPanel.add(creerStatCard("Absences", "3", new Color(230, 126, 34)));
-        statsPanel.add(creerStatCard("Rang", "8/25", new Color(46, 204, 113)));
-        
-        panel.add(statsPanel, BorderLayout.SOUTH);
-        
+        JTable table = new JTable(donnees, colonnes);
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
         return panel;
     }
     
     private JPanel createProfilPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // Avatar
         JLabel avatar = new JLabel("👨‍🎓");
         avatar.setFont(new Font("Segoe UI", Font.PLAIN, 80));
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridheight = 3;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridheight = 3;
         panel.add(avatar, gbc);
         
-        // Infos
-        gbc.gridheight = 1;
-        gbc.gridx = 1;
-        gbc.gridy = 0;
+        gbc.gridheight = 1; gbc.gridx = 1; gbc.gridy = 0;
         panel.add(new JLabel("Nom: " + etudiantConnecte.getNom()), gbc);
-        
         gbc.gridy = 1;
-        panel.add(new JLabel("Numéro étudiant: " + etudiantConnecte.getNumeroEtudiant()), gbc);
-        
+        panel.add(new JLabel("Numéro: " + etudiantConnecte.getNumeroEtudiant()), gbc);
         gbc.gridy = 2;
         panel.add(new JLabel("Email: " + etudiantConnecte.getEmail()), gbc);
-        
         gbc.gridy = 3;
         panel.add(new JLabel("Filière: " + etudiantConnecte.getFiliere()), gbc);
-        
         gbc.gridy = 4;
         panel.add(new JLabel("Niveau: " + etudiantConnecte.getNiveau()), gbc);
-        
         gbc.gridy = 5;
         panel.add(new JLabel("Groupe: " + etudiantConnecte.getGroupe()), gbc);
-        
         return panel;
     }
     
-    private JPanel creerStatCard(String titre, String valeur, Color couleur) {
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        card.setBackground(Color.WHITE);
-        
-        JLabel titreLabel = new JLabel(titre);
-        titreLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        titreLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
-        
-        JLabel valeurLabel = new JLabel(valeur);
-        valeurLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        valeurLabel.setForeground(couleur);
-        valeurLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-        
-        card.add(titreLabel, BorderLayout.NORTH);
-        card.add(valeurLabel, BorderLayout.CENTER);
-        
-        return card;
-    }
-    
     private void deconnexion() {
-        int choix = JOptionPane.showConfirmDialog(this, 
-            "Voulez-vous vous déconnecter ?",
-            "Déconnexion",
-            JOptionPane.YES_NO_OPTION);
-        
+        int choix = JOptionPane.showConfirmDialog(this, "Déconnexion ?", "Confirmation", JOptionPane.YES_NO_OPTION);
         if (choix == JOptionPane.YES_OPTION) {
             dispose();
             new LoginInterface().setVisible(true);

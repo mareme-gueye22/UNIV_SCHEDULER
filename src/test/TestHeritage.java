@@ -11,7 +11,7 @@ public class TestHeritage {
             "pass123",
             "2024001", 
             "L3", 
-            "Informatique"
+            "Informatique", 0, null, 0
         );
         etudiant.setGroupe("Groupe A");
         

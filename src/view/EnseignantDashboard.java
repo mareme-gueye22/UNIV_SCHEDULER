@@ -3,171 +3,104 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.*;
 import model.Enseignant;
+import service.CoursService;
 import model.Cours;
 
 @SuppressWarnings("unused")
 public class EnseignantDashboard extends JFrame {
-	
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    
     private Enseignant enseignantConnecte;
-    private JTabbedPane tabbedPane;
+    private JPanel contentPanel;
+    private CardLayout cardLayout;
     private JTable tableCours;
     private DefaultTableModel tableModel;
-    private JLabel welcomeLabel;
+    private CoursService coursService;
     
     public EnseignantDashboard(Enseignant enseignant) {
         this.enseignantConnecte = enseignant;
+        this.coursService = new CoursService();
         initUI();
         chargerDonnees();
     }
-    
-    private void initUI() {
-        setTitle("UNIV-SCHEDULER - Dashboard Enseignant : " + enseignantConnecte.getNom());
-        setSize(1200, 800);
+	private void initUI() {
+        setTitle("UNIV-SCHEDULER - Enseignant : " + enseignantConnecte.getNom());
+        setSize(1200, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
         
-        // Barre de menu
-        JMenuBar menuBar = new JMenuBar();
+        // Menu latéral
+        JPanel menuPanel = createMenuPanel();
+        add(menuPanel, BorderLayout.WEST);
         
-        JMenu fichierMenu = new JMenu("Fichier");
-        JMenuItem deconnexionItem = new JMenuItem("Déconnexion");
-        JMenuItem quitterItem = new JMenuItem("Quitter");
-        fichierMenu.add(deconnexionItem);
-        fichierMenu.addSeparator();
-        fichierMenu.add(quitterItem);
+        cardLayout = new CardLayout();
+        contentPanel = new JPanel(cardLayout);
+        contentPanel.add(createMesCoursPanel(), "COURS");
+        contentPanel.add(createPlanifierPanel(), "PLANIFIER");
+        contentPanel.add(createRechercheSallePanel(), "RECHERCHE");
+        contentPanel.add(createProfilPanel(), "PROFIL");
+        add(contentPanel, BorderLayout.CENTER);
         
-        JMenu coursMenu = new JMenu("Cours");
-        JMenuItem nouveauCoursItem = new JMenuItem("Nouvelle séance");
-        JMenuItem mesCoursItem = new JMenuItem("Mes cours");
-        coursMenu.add(nouveauCoursItem);
-        coursMenu.add(mesCoursItem);
-        
-        JMenu aideMenu = new JMenu("Aide");
-        JMenuItem aproposItem = new JMenuItem("À propos");
-        aideMenu.add(aproposItem);
-        
-        menuBar.add(fichierMenu);
-        menuBar.add(coursMenu);
-        menuBar.add(aideMenu);
-        setJMenuBar(menuBar);
-        
-        // Actions des menus
-        deconnexionItem.addActionListener(e -> deconnexion());
-        quitterItem.addActionListener(e -> System.exit(0));
-        nouveauCoursItem.addActionListener(e -> tabbedPane.setSelectedIndex(1));
-        mesCoursItem.addActionListener(e -> tabbedPane.setSelectedIndex(0));
-        aproposItem.addActionListener(e -> 
-            JOptionPane.showMessageDialog(this, 
-                "UNIV-SCHEDULER v1.0\nModule Enseignant\nGérez vos cours et séances", 
-                "À propos", 
-                JOptionPane.INFORMATION_MESSAGE)
-        );
-        
-        // Panneau avec en-tête personnalisé
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(52, 152, 219));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
-        welcomeLabel = new JLabel("Bienvenue, " + enseignantConnecte.getNom() + " (" + enseignantConnecte.getGrade() + ")");
-        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        welcomeLabel.setForeground(Color.WHITE);
-        
-        JLabel deptLabel = new JLabel("Département: " + enseignantConnecte.getDepartement());
-        deptLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        deptLabel.setForeground(Color.WHITE);
-        
-        headerPanel.add(welcomeLabel, BorderLayout.WEST);
-        headerPanel.add(deptLabel, BorderLayout.EAST);
-        
-        add(headerPanel, BorderLayout.NORTH);
-        
-        // Panneau avec onglets
-        tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        
-        tabbedPane.addTab("📅 Mes Cours", createMesCoursPanel());
-        tabbedPane.addTab("➕ Planifier Séance", createPlanifierPanel());
-        tabbedPane.addTab("🔍 Rechercher Salle", createRechercheSallePanel());
-        tabbedPane.addTab("📊 Statistiques", createStatistiquesPanel());
-        tabbedPane.addTab("👤 Mon Profil", createProfilPanel());
-        
-        add(tabbedPane, BorderLayout.CENTER);
+        cardLayout.show(contentPanel, "COURS");
     }
     
-    private JPanel createMesCoursPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+    @SuppressWarnings("unused")
+	private JPanel createMenuPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(new Color(39, 174, 96));
+        panel.setPreferredSize(new Dimension(200, 0));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 10, 5, 10);
         
-        // Panneau de filtre
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filterPanel.setBackground(new Color(240, 240, 240));
-        filterPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        JLabel title = new JLabel("ENSEIGNANT");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setForeground(Color.WHITE);
+        gbc.insets = new Insets(20, 10, 20, 10);
+        panel.add(title, gbc);
         
-        filterPanel.add(new JLabel("Filtrer par:"));
-        String[] filterOptions = {"Tous les cours", "Cette semaine", "Ce mois", "À venir", "Passés"};
-        JComboBox<String> filterCombo = new JComboBox<>(filterOptions);
-        filterPanel.add(filterCombo);
-        
-        filterPanel.add(new JLabel("Matière:"));
-        String[] matieres = {"Toutes", "Programmation Java", "Base de données", "Réseaux", "Algorithmique"};
-        JComboBox<String> matiereCombo = new JComboBox<>(matieres);
-        filterPanel.add(matiereCombo);
-        
-        filterPanel.add(new JButton("🔍 Appliquer"));
-        
-        panel.add(filterPanel, BorderLayout.NORTH);
-        
-        // Tableau des cours
-        String[] colonnes = {"ID", "Matière", "Classe", "Groupe", "Jour", "Horaire", "Salle", "Statut", "Présences"};
-        tableModel = new DefaultTableModel(colonnes, 0);
-        
-        tableCours = new JTable(tableModel);
-        tableCours.setRowHeight(35);
-        tableCours.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
-        tableCours.getTableHeader().setBackground(new Color(240, 240, 240));
-        tableCours.setSelectionBackground(new Color(210, 230, 250));
-        
-        JScrollPane scrollPane = new JScrollPane(tableCours);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
-        // Panneau de statistiques rapides
-        JPanel statsPanel = new JPanel(new GridLayout(1, 4, 15, 0));
-        statsPanel.setBackground(Color.WHITE);
-        statsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        
-        statsPanel.add(createQuickStat("Cours cette semaine", "8", new Color(52, 152, 219)));
-        statsPanel.add(createQuickStat("Heures effectuées", "24h", new Color(46, 204, 113)));
-        statsPanel.add(createQuickStat("Étudiants", "120", new Color(155, 89, 182)));
-        statsPanel.add(createQuickStat("Taux présence", "85%", new Color(230, 126, 34)));
-        
-        panel.add(statsPanel, BorderLayout.SOUTH);
-        
+        String[] items = {"📅 Mes cours", "➕ Planifier", "🔍 Rechercher salle", "👤 Profil"};
+        String[] cards = {"COURS", "PLANIFIER", "RECHERCHE", "PROFIL"};
+        for (int i = 0; i < items.length; i++) {
+            JButton btn = new JButton(items[i]);
+            btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            btn.setForeground(Color.WHITE);
+            btn.setBackground(new Color(39, 174, 96));
+            btn.setBorderPainted(false);
+            btn.setHorizontalAlignment(SwingConstants.LEFT);
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            final String card = cards[i];
+            btn.addActionListener(e -> cardLayout.show(contentPanel, card));
+            panel.add(btn, gbc);
+        }
+        gbc.weighty = 1.0;
+        panel.add(Box.createVerticalGlue(), gbc);
+        JButton logout = new JButton("🚪 Déconnexion");
+        logout.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        logout.setForeground(Color.WHITE);
+        logout.setBackground(new Color(192, 57, 43));
+        logout.addActionListener(e -> deconnexion());
+        panel.add(logout, gbc);
         return panel;
     }
     
-    private JPanel createQuickStat(String label, String value, Color color) {
+    private JPanel createMesCoursPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
-        ));
         
-        JLabel valueLabel = new JLabel(value, SwingConstants.CENTER);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        valueLabel.setForeground(color);
+        JLabel titre = new JLabel("Mes cours");
+        titre.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        panel.add(titre, BorderLayout.NORTH);
         
-        JLabel labelLabel = new JLabel(label, SwingConstants.CENTER);
-        labelLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        
-        panel.add(valueLabel, BorderLayout.CENTER);
-        panel.add(labelLabel, BorderLayout.SOUTH);
-        
+        String[] colonnes = {"ID", "Matière", "Classe", "Jour", "Horaire", "Salle", "Statut"};
+        tableModel = new DefaultTableModel(colonnes, 0);
+        tableCours = new JTable(tableModel);
+        tableCours.setRowHeight(30);
+        panel.add(new JScrollPane(tableCours), BorderLayout.CENTER);
         return panel;
     }
     
@@ -175,80 +108,51 @@ public class EnseignantDashboard extends JFrame {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // Titre
-        JLabel titre = new JLabel("Planifier une nouvelle séance");
-        titre.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 3;
+        JLabel titre = new JLabel("Planifier une séance");
+        titre.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         panel.add(titre, gbc);
         
-        // Sous-titre
-        JLabel soustitre = new JLabel("Remplissez les informations ci-dessous");
-        soustitre.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        soustitre.setForeground(Color.GRAY);
-        gbc.gridy = 1;
-        panel.add(soustitre, gbc);
-        
-        // Formulaire simplifié
-        gbc.gridwidth = 1;
-        gbc.gridy = 2;
-        gbc.gridx = 0;
+        gbc.gridwidth = 1; gbc.gridy = 1;
         panel.add(new JLabel("Matière:"), gbc);
         gbc.gridx = 1;
-        gbc.gridwidth = 2;
-        String[] matieres = {"Programmation Java", "Base de données", "Réseaux", "Algorithmique"};
-        JComboBox<String> matiereCombo = new JComboBox<>(matieres);
-        panel.add(matiereCombo, gbc);
+        JTextField matiereField = new JTextField(15);
+        panel.add(matiereField, gbc);
         
-        gbc.gridwidth = 1;
-        gbc.gridy = 3;
-        gbc.gridx = 0;
+        gbc.gridx = 0; gbc.gridy = 2;
         panel.add(new JLabel("Classe:"), gbc);
         gbc.gridx = 1;
-        String[] classes = {"L3 Info", "L2 Info", "M1 Info"};
-        JComboBox<String> classeCombo = new JComboBox<>(classes);
-        panel.add(classeCombo, gbc);
+        JTextField classeField = new JTextField(15);
+        panel.add(classeField, gbc);
         
-        gbc.gridx = 2;
-        String[] groupes = {"Groupe A", "Groupe B"};
-        JComboBox<String> groupeCombo = new JComboBox<>(groupes);
-        panel.add(groupeCombo, gbc);
-        
-        gbc.gridy = 4;
-        gbc.gridx = 0;
+        gbc.gridx = 0; gbc.gridy = 3;
         panel.add(new JLabel("Jour:"), gbc);
         gbc.gridx = 1;
-        String[] jours = {"Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"};
+        String[] jours = {"Lundi","Mardi","Mercredi","Jeudi","Vendredi"};
         JComboBox<String> jourCombo = new JComboBox<>(jours);
         panel.add(jourCombo, gbc);
         
-        gbc.gridx = 2;
-        panel.add(new JLabel("Heure:"), gbc);
-        gbc.gridx = 3;
-        String[] heures = {"08:00", "10:00", "14:00", "16:00"};
+        gbc.gridx = 0; gbc.gridy = 4;
+        panel.add(new JLabel("Horaire:"), gbc);
+        gbc.gridx = 1;
+        String[] heures = {"08:00","10:00","14:00","16:00"};
         JComboBox<String> heureCombo = new JComboBox<>(heures);
         panel.add(heureCombo, gbc);
         
-        // Bouton
-        gbc.gridy = 5;
-        gbc.gridx = 0;
-        gbc.gridwidth = 4;
-        JButton planifierButton = new JButton("✅ Planifier la séance");
-        planifierButton.setBackground(new Color(46, 204, 113));
-        planifierButton.setForeground(Color.WHITE);
-        planifierButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        planifierButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Séance planifiée avec succès!");
-            tabbedPane.setSelectedIndex(0);
-        });
-        panel.add(planifierButton, gbc);
+        JButton btn = new JButton("✅ Planifier");
+        btn.setBackground(new Color(46, 204, 113));
+        btn.setForeground(Color.WHITE);
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        panel.add(btn, gbc);
         
+        btn.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Cours planifié (simulation)");
+            // Ici vous appelleriez le service pour enregistrer
+        });
         return panel;
     }
     
@@ -256,114 +160,62 @@ public class EnseignantDashboard extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        
-        JLabel titre = new JLabel("Rechercher une salle disponible");
-        titre.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        JLabel titre = new JLabel("Rechercher une salle");
+        titre.setFont(new Font("Segoe UI", Font.BOLD, 18));
         panel.add(titre, BorderLayout.NORTH);
         
-        JPanel recherchePanel = new JPanel(new FlowLayout());
-        recherchePanel.setBackground(new Color(240, 240, 240));
-        recherchePanel.add(new JLabel("Date:"));
-        recherchePanel.add(new JTextField("10/03/2026", 8));
-        recherchePanel.add(new JLabel("Capacité:"));
-        recherchePanel.add(new JTextField("30", 5));
-        recherchePanel.add(new JButton("🔍 Rechercher"));
-        
-        panel.add(recherchePanel, BorderLayout.CENTER);
+        JPanel search = new JPanel(new FlowLayout());
+        search.add(new JLabel("Date:"));
+        search.add(new JTextField("10/03/2026", 8));
+        search.add(new JLabel("Capacité:"));
+        search.add(new JTextField("30", 5));
+        search.add(new JButton("🔍 Rechercher"));
+        panel.add(search, BorderLayout.CENTER);
         
         String[] colonnes = {"Salle", "Capacité", "Disponibilité"};
-        Object[][] donnees = {
-            {"A101", "150", "08h-12h, 14h-18h"},
+        Object[][] data = {
+            {"A101", "150", "08h-12h"},
             {"B205", "40", "14h-18h"},
-            {"C103", "60", "Toute la journée"}
+            {"C103", "60", "Toute journée"}
         };
-        
-        JTable resultatsTable = new JTable(donnees, colonnes);
-        panel.add(new JScrollPane(resultatsTable), BorderLayout.SOUTH);
-        
+        JTable table = new JTable(data, colonnes);
+        panel.add(new JScrollPane(table), BorderLayout.SOUTH);
         return panel;
-    }
-    
-    private JPanel createStatistiquesPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 2, 20, 20));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        panel.add(createStatCard("Heures effectuées", "124h", new Color(52, 152, 219)));
-        panel.add(createStatCard("Présence moyenne", "87%", new Color(46, 204, 113)));
-        panel.add(createStatCard("Cours planifiés", "24", new Color(155, 89, 182)));
-        panel.add(createStatCard("Étudiants", "120", new Color(230, 126, 34)));
-        
-        return panel;
-    }
-    
-    private JPanel createStatCard(String title, String value, Color color) {
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
-        
-        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
-        JLabel valueLabel = new JLabel(value, SwingConstants.CENTER);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
-        valueLabel.setForeground(color);
-        
-        card.add(titleLabel, BorderLayout.NORTH);
-        card.add(valueLabel, BorderLayout.CENTER);
-        
-        return card;
     }
     
     private JPanel createProfilPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         JLabel avatar = new JLabel("👨‍🏫");
         avatar.setFont(new Font("Segoe UI", Font.PLAIN, 80));
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridheight = 3;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridheight = 3;
         panel.add(avatar, gbc);
         
-        gbc.gridheight = 1;
-        gbc.gridx = 1;
-        gbc.gridy = 0;
+        gbc.gridheight = 1; gbc.gridx = 1; gbc.gridy = 0;
         panel.add(new JLabel("Nom: " + enseignantConnecte.getNom()), gbc);
-        
         gbc.gridy = 1;
         panel.add(new JLabel("Email: " + enseignantConnecte.getEmail()), gbc);
-        
         gbc.gridy = 2;
         panel.add(new JLabel("Département: " + enseignantConnecte.getDepartement()), gbc);
-        
         gbc.gridy = 3;
         panel.add(new JLabel("Grade: " + enseignantConnecte.getGrade()), gbc);
-        
         return panel;
     }
     
     private void chargerDonnees() {
         tableModel.setRowCount(0);
-        Object[][] cours = {
-            {"1", "Programmation Java", "L3 Info", "Groupe A", "Lundi", "08h-10h", "A101", "✅ Confirmé", "42/45"},
-            {"2", "Base de données", "L3 Info", "Groupe A", "Lundi", "10h-12h", "A105", "✅ Confirmé", "40/45"}
-        };
-        
-        for (Object[] c : cours) {
-            tableModel.addRow(c);
-        }
+        // Données factices
+        tableModel.addRow(new Object[]{"1", "Java", "L3 Info", "Lundi", "08h-10h", "A101", "✅"});
+        tableModel.addRow(new Object[]{"2", "BD", "L3 Info", "Mardi", "10h-12h", "A105", "⏳"});
     }
     
     private void deconnexion() {
-        int choix = JOptionPane.showConfirmDialog(this, 
-            "Voulez-vous vous déconnecter ?",
-            "Déconnexion",
-            JOptionPane.YES_NO_OPTION);
-        
+        int choix = JOptionPane.showConfirmDialog(this, "Déconnexion ?", "Confirmation", JOptionPane.YES_NO_OPTION);
         if (choix == JOptionPane.YES_OPTION) {
             dispose();
             new LoginInterface().setVisible(true);

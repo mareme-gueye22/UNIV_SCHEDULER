@@ -2,77 +2,68 @@ package model;
 
 public class Salle {
     private int id;
-    private String numero;
-    private int capacite;
+    private String code;
+    private String nom;
     private String batiment;
-    private String type; // TD, TP, Amphi
-    private boolean disponible;
-    
-    // Constructeurs
-    public Salle() {}
-    
-    public Salle(String numero, int capacite, String batiment) {
-        this.numero = numero;
-        this.capacite = capacite;
+    private int etage;
+    private int capacite;
+    private String type;
+    private String equipements;
+    private String statut;
+    private int responsableId;
+
+    public Salle() {
+        this.statut = "DISPONIBLE";
+    }
+
+    public Salle(String code, String nom, String batiment, int etage, int capacite, String type) {
+        this();
+        this.code = code;
+        this.nom = nom;
         this.batiment = batiment;
-        this.disponible = true;
-    }
-    
-    // Getters et Setters
-    public int getId() {
-        return id;
-    }
-    
-    public void setId(int id) {
-        this.id = id;
-    }
-    
-    public String getNumero() {
-        return numero;
-    }
-    
-    public void setNumero(String numero) {
-        this.numero = numero;
-    }
-    
-    public int getCapacite() {
-        return capacite;
-    }
-    
-    public void setCapacite(int capacite) {
+        this.etage = etage;
         this.capacite = capacite;
-    }
-    
-    public String getBatiment() {
-        return batiment;
-    }
-    
-    public void setBatiment(String batiment) {
-        this.batiment = batiment;
-    }
-    
-    public String getType() {
-        return type;
-    }
-    
-    public void setType(String type) {
         this.type = type;
     }
-    
-    public boolean isDisponible() {
-        return disponible;
-    }
-    
-    public void setDisponible(boolean disponible) {
-        this.disponible = disponible;
-    }
-    
-    @Override
-    public String toString() {
-        return "Salle{" +
-                "numero='" + numero + '\'' +
-                ", capacite=" + capacite +
-                ", batiment='" + batiment + '\'' +
-                '}';
-    }
+
+    // Getters / Setters (tous)
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
+
+    public String getNom() { return nom; }
+    public void setNom(String nom) { this.nom = nom; }
+
+    public String getBatiment() { return batiment; }
+    public void setBatiment(String batiment) { this.batiment = batiment; }
+
+    public int getEtage() { return etage; }
+    public void setEtage(int etage) { this.etage = etage; }
+
+    public int getCapacite() { return capacite; }
+    public void setCapacite(int capacite) { this.capacite = capacite; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    public String getEquipements() { return equipements; }
+    public void setEquipements(String equipements) { this.equipements = equipements; }
+
+    public String getStatut() { return statut; }
+    public void setStatut(String statut) { this.statut = statut; }
+
+    public int getResponsableId() { return responsableId; }
+    public void setResponsableId(int responsableId) { this.responsableId = responsableId; }
+
+	public String getNumero() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void setDisponible(boolean b) {
+		// TODO Auto-generated method stub
+		
+	}
 }

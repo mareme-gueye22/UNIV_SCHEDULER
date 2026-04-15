@@ -1,52 +1,25 @@
 package controller;
 
+import model.Enseignant;
+import model.Etudiant;
 import model.Utilisateur;
 import service.AuthService;
 import view.*;
 
 public class LoginController {
-    
-    private AuthService authService;
-    
-    public LoginController() {
-        this.authService = new AuthService();
-    }
-    
-    /**
-     * Traiter la tentative de connexion
-     */
+    private AuthService authService = new AuthService();
+
     public boolean handleLogin(String email, String password) {
         return authService.login(email, password) != null;
     }
-    
-    /**
-     * Rediriger vers le dashboard approprié selon le rôle
-     */
-    public void redirectToDashboard(Utilisateur utilisateur) {
-        if (utilisateur == null) return;
-        
-        switch (utilisateur.getRole()) {
-            case "ADMIN":
-                new AdminDashboard().setVisible(true);
-                break;
-            case "GESTIONNAIRE":
-                new GestionnaireDashboard().setVisible(true);
-                break;
-            case "ENSEIGNANT":
-                // new EnseignantDashboard((Enseignant) utilisateur).setVisible(true);
-                break;
-            case "ETUDIANT":
-                // new EtudiantDashboard((Etudiant) utilisateur).setVisible(true);
-                break;
-            default:
-                System.out.println("Rôle inconnu: " + utilisateur.getRole());
+
+    public void redirectToDashboard(Utilisateur u) {
+        if (u == null) return;
+        switch (u.getRole()) {
+            case "ADMIN": new AdminDashboard().setVisible(true); break;
+            case "GESTIONNAIRE": new GestionnaireDashboard().setVisible(true); break;
+            case "ENSEIGNANT": new EnseignantDashboard((Enseignant) u).setVisible(true); break;
+            case "ETUDIANT": new EtudiantDashboard((Etudiant) u).setVisible(true); break;
         }
-    }
-    
-    /**
-     * Réinitialiser le mot de passe
-     */
-    public String resetPassword(String email) {
-        return authService.resetPassword(email);
     }
 }

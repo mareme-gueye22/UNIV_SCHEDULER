@@ -1,73 +1,100 @@
 package view;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
+
+import model.Enseignant;
+import model.Etudiant;
+import model.Utilisateur;
+import service.AuthService;
 
 public class LoginInterface extends JFrame {
-    private static final long serialVersionUID = 1L; // Pour éviter l'avertissement de sérialisation
+
+    private static final long serialVersionUID = 1L;
     
     private JTextField userField;
     private JPasswordField passwordField;
     private JButton loginButton;
     private JLabel messageLabel;
     
+    public static void main(String[] args) {
+        EventQueue.invokeLater(() -> {
+            try {
+                new LoginInterface().setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public LoginInterface() {
         initUI();
     }
     
     @SuppressWarnings("unused")
 	private void initUI() {
-        setTitle("Cahier de texte numérique - Connexion");
+        setTitle("UNIV-SCHEDULER - Connexion");
         setSize(450, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
         
-        // --- Panel principal avec fond personnalisé ---
+        // Panel principal avec fond personnalisé
         JPanel mainPanel = new JPanel() {
-            private static final long serialVersionUID = 1L; // Pour éviter l'avertissement
-            
+            private static final long serialVersionUID = 1L;
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
-
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
                 int w = getWidth();
                 int h = getHeight();
-
-                // Dégradé de fond
                 Color darkBlue = new Color(8, 15, 30);
                 Color midBlue = new Color(25, 60, 110);
                 GradientPaint gradient = new GradientPaint(0, 0, darkBlue, w * 0.7f, h * 0.3f, midBlue);
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, w, h);
-
-                // Lignes décoratives
                 g2d.setColor(new Color(90, 180, 255, 40));
                 g2d.setStroke(new BasicStroke(1.5f));
-
                 int spacing = 40;
                 for (int i = -h; i < w + h; i += spacing) {
                     g2d.drawLine(i, 0, i + h, h);
                 }
-
-                // Cercles décoratifs
                 g2d.setColor(new Color(70, 150, 255, 60));
                 g2d.fillOval(-50, -30, 200, 200);
                 g2d.setColor(new Color(120, 200, 255, 50));
                 g2d.fillOval(w - 180, h - 150, 250, 250);
-
                 g2d.dispose();
             }
         };
-        
         mainPanel.setLayout(new GridBagLayout());
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
         
-        // Panel de contenu blanc avec transparence
         JPanel contentPanel = new JPanel();
         contentPanel.setBackground(new Color(255, 255, 255, 220));
         contentPanel.setLayout(new GridBagLayout());
@@ -81,9 +108,7 @@ public class LoginInterface extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         // Emoji livre
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         JLabel bookEmoji = new JLabel("📚");
         bookEmoji.setFont(new Font("Segoe UI", Font.PLAIN, 60));
         bookEmoji.setHorizontalAlignment(SwingConstants.CENTER);
@@ -106,10 +131,9 @@ public class LoginInterface extends JFrame {
         contentPanel.add(subtitleLabel, gbc);
         
         // Champ Utilisateur
-        gbc.gridy = 3;
-        gbc.gridwidth = 1;
+        gbc.gridy = 3; gbc.gridwidth = 1;
         gbc.insets = new Insets(20, 10, 5, 10);
-        JLabel userLabel = new JLabel("👤 Utilisateur");
+        JLabel userLabel = new JLabel(" Utilisateur");
         userLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         userLabel.setForeground(new Color(102, 102, 102));
         contentPanel.add(userLabel, gbc);
@@ -128,7 +152,7 @@ public class LoginInterface extends JFrame {
         // Champ Mot de passe
         gbc.gridy = 5;
         gbc.insets = new Insets(5, 10, 5, 10);
-        JLabel passLabel = new JLabel("🔒 Mot de passe");
+        JLabel passLabel = new JLabel("Mot de passe");
         passLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         passLabel.setForeground(new Color(102, 102, 102));
         contentPanel.add(passLabel, gbc);
@@ -147,33 +171,31 @@ public class LoginInterface extends JFrame {
         // Bouton Se connecter
         gbc.gridy = 7;
         gbc.insets = new Insets(10, 10, 20, 10);
-        loginButton = new JButton("🔑 Se connecter");
+        loginButton = new JButton("Se connecter");
         loginButton.setPreferredSize(new Dimension(300, 45));
         loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        loginButton.setForeground(Color.black);
+        loginButton.setForeground(Color.BLACK);
         loginButton.setBackground(new Color(70, 130, 180));
         loginButton.setBorder(BorderFactory.createEmptyBorder());
         loginButton.setFocusPainted(false);
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Utilisation d'un seul MouseAdapter pour éviter les avertissements
-        MouseAdapter buttonHover = new MouseAdapter() {
+        loginButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 loginButton.setBackground(new Color(60, 120, 170));
             }
-            
             @Override
             public void mouseExited(MouseEvent e) {
                 loginButton.setBackground(new Color(70, 130, 180));
             }
-        };
-        loginButton.addMouseListener(buttonHover);
+        });
         
-        loginButton.addActionListener(this::handleLogin);
+        // Action du bouton de connexion (corrigée)
+        loginButton.addActionListener(e -> handleLogin());
         contentPanel.add(loginButton, gbc);
         
-        // Label pour la section "Connexion rapide"
+        // Connexion rapide
         gbc.gridy = 8;
         gbc.insets = new Insets(5, 10, 10, 10);
         JLabel quickLoginLabel = new JLabel("Connexion rapide :");
@@ -181,25 +203,23 @@ public class LoginInterface extends JFrame {
         quickLoginLabel.setForeground(new Color(102, 102, 102));
         contentPanel.add(quickLoginLabel, gbc);
         
-        // Panel pour les boutons de rôle
         gbc.gridy = 9;
         JPanel rolePanel = new JPanel(new GridLayout(2, 2, 10, 10));
         rolePanel.setBackground(new Color(255, 255, 255, 0));
         rolePanel.setOpaque(false);
         
-        // Rôles avec émojis
         String[][] roles = {
-            {"👔 Chef département", "chef.departement", "chef123"},
-            {"👨‍🏫 Enseignant", "enseignant", "prof123"},
-            {"📋 Responsable classe", "responsable.classe", "resp123"},
-            {"👨‍🎓 Étudiant", "etudiant", "etudiant123"}
+            {" Administrateur", "admin@univ.fr", "admin123"},
+            {"‍ Enseignant", "martin@univ.fr", "pass"},
+            {" Gestionnaire", "gestionnaire@univ.fr", "gestion123"},
+            {"‍ Étudiant", "jean.dupont@etudiant.fr", "etudiant123"}
         };
         
         Color[] colors = {
-            new Color(0x07, 0x17, 0x39),  // #071739
-            new Color(40, 167, 69),        // Vert
-            new Color(220, 53, 69),        // Rouge
-            new Color(0x5C, 0x3B, 0x2A)    // #5C3B2A
+            new Color(0x07, 0x17, 0x39),
+            new Color(40, 167, 69),
+            new Color(220, 53, 69),
+            new Color(0x5C, 0x3B, 0x2A)
         };
         
         for (int i = 0; i < roles.length; i++) {
@@ -210,19 +230,15 @@ public class LoginInterface extends JFrame {
             roleButton.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
             roleButton.setFocusPainted(false);
             roleButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            
-            final String username = roles[i][1];
-            final String password = roles[i][2];
-            
-            roleButton.addActionListener(e -> {
-                userField.setText(username);
-                passwordField.setText(password);
+            final String email = roles[i][1];
+            final String pwd = roles[i][2];
+            roleButton.addActionListener(ev -> {
+                userField.setText(email);
+                passwordField.setText(pwd);
                 messageLabel.setText(" ");
             });
-            
             rolePanel.add(roleButton);
         }
-        
         contentPanel.add(rolePanel, gbc);
         
         // Message d'erreur/succès
@@ -233,102 +249,68 @@ public class LoginInterface extends JFrame {
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         contentPanel.add(messageLabel, gbc);
         
-        // Ajout du contentPanel au mainPanel
         GridBagConstraints mainGbc = new GridBagConstraints();
         mainGbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(contentPanel, mainGbc);
-        
         add(mainPanel);
         getRootPane().setDefaultButton(loginButton);
     }
     
-    private void handleLogin(ActionEvent e) {
-        String username = userField.getText().trim();
+    @SuppressWarnings("unused")
+	private void handleLogin() {
+        String email = userField.getText().trim();
         String password = new String(passwordField.getPassword());
         
-        if (username.isEmpty() || password.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty()) {
             messageLabel.setForeground(Color.RED);
             messageLabel.setText("❌ Veuillez remplir tous les champs");
             return;
         }
         
-        messageLabel.setForeground(new Color(34, 139, 34));
-        messageLabel.setText("✅ Connexion réussie!");
+        AuthService authService = new AuthService();
+        Utilisateur utilisateur = authService.login(email, password);
         
-        // Redirection après 1 seconde
-        @SuppressWarnings("unused")
-		Timer timer = new Timer(1000, ev -> {
-            dispose();
-            openDashboard(username);
-        });
-        timer.setRepeats(false);
-        timer.start();
-    }
-    
-    private void openDashboard(String username) {
-        JFrame dashboard;
-        
-        if (username.contains("chef")) {
-            dashboard = new AdminDashboard(); // Chef département = Admin
-        } else if (username.contains("enseignant")) {
-            // Créer un objet Enseignant (à adapter selon votre constructeur)
-            // dashboard = new EnseignantDashboard(new Enseignant(...));
-            dashboard = new JFrame("Dashboard Enseignant - À implémenter");
-            dashboard.setSize(800, 600);
-        } else if (username.contains("responsable")) {
-            dashboard = new GestionnaireDashboard(); // Responsable classe = Gestionnaire
-        } else if (username.contains("etudiant")) {
-            // dashboard = new EtudiantDashboard(new Etudiant(...));
-            dashboard = new JFrame("Dashboard Étudiant - À implémenter");
-            dashboard.setSize(800, 600);
+        if (utilisateur != null) {
+            messageLabel.setForeground(new Color(34, 139, 34));
+            messageLabel.setText("✅ Connexion réussie !");
+            Timer timer = new Timer(1000, ev -> {
+                dispose();
+                redirectToDashboard(utilisateur);
+            });
+            timer.setRepeats(false);
+            timer.start();
         } else {
-            dashboard = new JFrame("Tableau de bord");
-            dashboard.setSize(800, 600);
+            messageLabel.setForeground(Color.RED);
+            messageLabel.setText("❌ Email ou mot de passe incorrect");
         }
-        
-        dashboard.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        dashboard.setLocationRelativeTo(null);
-        dashboard.setVisible(true);
     }
     
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e) {
-                // Silencieux - pas d'affichage d'exception
-            }
-            new LoginInterface().setVisible(true);
-        });
+    private void redirectToDashboard(Utilisateur u) {
+        if (u == null) return;
+        switch (u.getRole()) {
+            case "ADMIN":
+            case "Administrateur":
+                new AdminDashboard().setVisible(true);
+                break;
+            case "GESTIONNAIRE":
+                new GestionnaireDashboard().setVisible(true);
+                break;
+            case "ENSEIGNANT":
+                if (u instanceof Enseignant) {
+                    new EnseignantDashboard((Enseignant) u).setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erreur de casting Enseignant");
+                }
+                break;
+            case "ETUDIANT":
+                if (u instanceof Etudiant) {
+                    new EtudiantDashboard((Etudiant) u).setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erreur de casting Étudiant");
+                }
+                break;
+            default:
+                JOptionPane.showMessageDialog(this, "Rôle non reconnu : " + u.getRole());
+        }
     }
 }
-//private void handleLogin() {
-//    String email = userField.getText().trim();
-//    String password = new String(passwordField.getPassword());
-//    
-//    AuthService authService = new AuthService();
-//    Utilisateur user = authService.login(email, password);
-//    
-//    if (user != null) {
-//        messageLabel.setForeground(Color.GREEN);
-//        messageLabel.setText("✅ Connexion réussie!");
-//        
-//        Timer timer = new Timer(1000, e -> {
-//            dispose();
-//            if (user instanceof Enseignant) {
-//                new EnseignantDashboard((Enseignant) user).setVisible(true);
-//            } else if (user instanceof Etudiant) {
-//                new EtudiantDashboard((Etudiant) user).setVisible(true);
-//            } else if (user instanceof Administrateur) {
-//                new AdminDashboard().setVisible(true);
-//            } else if (user instanceof Gestionnaire) {
-//                new GestionnaireDashboard().setVisible(true);
-//            }
-//        });
-//        timer.setRepeats(false);
-//        timer.start();
-//    } else {
-//        messageLabel.setForeground(Color.RED);
-//        messageLabel.setText("❌ Email ou mot de passe incorrect");
-//    }
-//}

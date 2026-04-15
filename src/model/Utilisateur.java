@@ -7,94 +7,46 @@ public abstract class Utilisateur {
     protected String nom;
     protected String email;
     protected String motDePasse;
-	@SuppressWarnings("unused")
-	private String statut;
-	private String salt;
-    
-    // Constructeurs
+    protected String salt;
+    protected String role;
+    protected String statut;
+    protected Timestamp dateCreation;
+    protected Timestamp derniereConnexion;
+
     public Utilisateur() {}
-    
+
     public Utilisateur(String nom, String email, String motDePasse) {
         this.nom = nom;
         this.email = email;
         this.motDePasse = motDePasse;
+        this.statut = "ACTIF";
     }
-    
-    // Getters et Setters
-    public int getId() {
-        return id;
-    }
-    
-    public void setId(int id) {
-        this.id = id;
-    }
-    
-    public String getNom() {
-        return nom;
-    }
-    
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
-    
-    public String getEmail() {
-        return email;
-    }
-    
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    
-    public String getMotDePasse() {
-        return motDePasse;
-    }
-    
-    public void setMotDePasse(String motDePasse) {
-        this.motDePasse = motDePasse;
-    }
-    
-    // Méthode abstraite que les classes filles doivent implémenter
-    public abstract String getRole();
 
-	public String getStatut() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	public String setStatut(String statut) {
-		return this.statut= statut;
-		
-	}
+    // Getters / Setters (tous présents)
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-	public String getSalt() {
-		return salt;
-	}
+    public String getNom() { return nom; }
+    public void setNom(String nom) { this.nom = nom; }
 
-	public void setSalt(String salt) {
-		this.salt = salt;
-	}
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-	public void setRole1(String string) {
-		// TODO Auto-generated method stub
-		
-	}
+    public String getMotDePasse() { return motDePasse; }
+    public void setMotDePasse(String motDePasse) { this.motDePasse = motDePasse; }
 
-	public void setDateCreation1(Timestamp timestamp) {
-		// TODO Auto-generated method stub
-		
-	}
+    public String getSalt() { return salt; }
+    public void setSalt(String salt) { this.salt = salt; }
 
-	public void setDerniereConnexion(Timestamp timestamp) {
-		// TODO Auto-generated method stub
-		
-	}
+    public abstract String getRole();  // implémenté dans les sous-classes
+    public void setRole(String role) { this.role = role; }
 
-	public void setDateCreation(Timestamp timestamp) {
-		// TODO Auto-generated method stub
-		
-	}
+    public String getStatut() { return statut; }
+    public void setStatut(String statut) { this.statut = statut; }
 
-	public void setRole(String string) {
-		// TODO Auto-generated method stub
-		
-	}
+    public Timestamp getDateCreation() { return dateCreation; }
+    public void setDateCreation(Timestamp dateCreation) { this.dateCreation = dateCreation; }
+
+    public Timestamp getDerniereConnexion() { return derniereConnexion; }
+    public void setDerniereConnexion(Timestamp derniereConnexion) { this.derniereConnexion = derniereConnexion; }
 }

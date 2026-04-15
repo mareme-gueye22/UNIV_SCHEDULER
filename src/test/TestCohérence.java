@@ -12,7 +12,7 @@ public class TestCohérence {
         System.out.println("Enseignant: " + prof.getNom() + " - " + prof.getGrade());
         
         // Test Salle
-        Salle salle = new Salle("A101", 150, "A");
+        Salle salle = new Salle("A101", null, null, 150, 0, "A");
         salle.setType("Amphi");
         salle.setDisponible(true);
          
@@ -35,7 +35,7 @@ public class TestCohérence {
         System.out.println("  Salle: " + cours.getSalle().getNumero());
         
         // Test Etudiant
-        Etudiant etu = new Etudiant("Jean", "jean@univ.fr", "pass", "2024001", "L3", "Info");
+        Etudiant etu = new Etudiant("Jean", "jean@univ.fr", "pass", "2024001", "L3", "Info", 0, null, 0);
         etu.setGroupe("A");
         
         System.out.println("\nÉtudiant: " + etu.getNom());

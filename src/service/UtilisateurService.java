@@ -1,80 +1,26 @@
 package service;
 
 import dao.UtilisateurDAO;
-import model.*;
+import model.Utilisateur;
 import utils.PasswordUtils;
-import java.sql.SQLException;
 import java.util.List;
-import java.util.ArrayList;
 
 public class UtilisateurService {
-    
-    private UtilisateurDAO utilisateurDAO;
-    
-    public UtilisateurService() {
-        this.utilisateurDAO = new UtilisateurDAO();
+    private UtilisateurDAO dao = new UtilisateurDAO();
+
+    public boolean createUtilisateur(Utilisateur u, String plainPassword) {
+        if (dao.findByEmail(u.getEmail()) != null) return false;
+        String salt = PasswordUtils.generateSalt();
+        String hash = PasswordUtils.hashPassword(plainPassword, salt);
+        u.setMotDePasse(hash);
+        u.setSalt(salt);
+        return dao.save(u);
     }
-    
-    /**
-     * Créer un nouvel utilisateur avec mot de passe haché
-     */
-    public boolean createUtilisateur(Utilisateur utilisateur, String plainPassword) {
-        if (utilisateur == null || plainPassword == null || plainPassword.isEmpty()) {
-            return false;
-        }
-        
-        // Vérifier si l'email existe déjà
-		if (utilisateurDAO.findByEmail(utilisateur.getEmail()) != null) {
-		    System.out.println("❌ Email déjà utilisé: " + utilisateur.getEmail());
-		    return false;
-		}
-		
-		// Générer sel et hacher le mot de passe
-		String salt = PasswordUtils.generateSalt();
-		String hashedPassword = PasswordUtils.hashPassword(plainPassword, salt);
-		
-		utilisateur.setMotDePasse(hashedPassword);
-		utilisateur.setSalt(salt);
-		
-		return utilisateurDAO.save(utilisateur);
-    }
-    
-    /**
-     * Récupérer tous les utilisateurs
-     */
-    public List<Utilisateur> getAllUtilisateurs() {
-        return utilisateurDAO.findAll();
-    }
-    
-    /**
-     * Récupérer les utilisateurs par rôle
-     */
-    public List<Utilisateur> getUtilisateursByRole(String role) {
-        return utilisateurDAO.findByRole(role);
-    }
-    
-    /**
-     * Rechercher un utilisateur par email
-     */
-    public Utilisateur getUtilisateurByEmail(String email) {
-        return utilisateurDAO.findByEmail(email);
-    }
-    
-    /**
-     * Activer/Désactiver un utilisateur
-     */
+
+    public List<Utilisateur> getAllUtilisateurs() { return dao.findAll(); }
+    public List<Utilisateur> getUtilisateursByRole(String role) { return dao.findByRole(role); }
     public boolean setUtilisateurStatut(int id, String statut) {
-        if ("ACTIF".equals(statut)) {
-		    return utilisateurDAO.activate(id);  // ✅ Correction: activate() au lieu de activate11()
-		} else {
-		    return utilisateurDAO.deactivate(id);
-		}
+        return "ACTIF".equals(statut) ? dao.activate(id) : dao.deactivate(id);
     }
-    
-    /**
-     * Supprimer un utilisateur
-     */
-    public boolean deleteUtilisateur(int id) {
-        return utilisateurDAO.delete(id);
-    }
+    public boolean deleteUtilisateur(int id) { return dao.delete(id); }
 }
