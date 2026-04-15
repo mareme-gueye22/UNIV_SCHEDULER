@@ -1,111 +1,117 @@
 -- ===========================================
 -- Script de création des tables
--- UNIV-SCHEDULER - Gestion des salles
+-- UNIV-SCHEDULER - Version compatible avec les classes Java
 -- ===========================================
 
 CREATE DATABASE IF NOT EXISTS univ_scheduler;
 USE univ_scheduler;
 
--- Table des utilisateurs (classe parente)
+-- 1. Table utilisateurs (classe parente)
 CREATE TABLE utilisateurs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nom VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     mot_de_passe VARCHAR(255) NOT NULL,
-    role ENUM('Administrateur', 'Gestionnaire', 'Enseignant', 'Etudiant') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    salt VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,              -- 'ADMIN', 'GESTIONNAIRE', 'ENSEIGNANT', 'ETUDIANT'
+    statut VARCHAR(20) DEFAULT 'ACTIF',
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    derniere_connexion TIMESTAMP NULL
 );
 
--- Table des enseignants (spécifique)
+-- 2. Table enseignants
 CREATE TABLE enseignants (
     id INT PRIMARY KEY,
     departement VARCHAR(100),
     grade VARCHAR(50),
-    telephone INT (10),
+    telephone INT,
+    bureau VARCHAR(50),
+    specialite VARCHAR(100),
     FOREIGN KEY (id) REFERENCES utilisateurs(id) ON DELETE CASCADE
 );
 
--- Table des étudiants
+-- 3. Table etudiants
 CREATE TABLE etudiants (
     id INT PRIMARY KEY,
     numero_etudiant VARCHAR(20) UNIQUE NOT NULL,
-    niveau VARCHAR(10),
     filiere VARCHAR(100),
-    groupe VARCHAR(20),
+    niveau VARCHAR(50),
+    groupe VARCHAR(50),
+    annee_entree INT,
+    moyenne DECIMAL(4,2) DEFAULT 0.0,
+    telephone INT,
     FOREIGN KEY (id) REFERENCES utilisateurs(id) ON DELETE CASCADE
 );
 
-	ALTER TABLE etudiants ADD telephone INT;
--- Table des administrateurs
+-- 4. Table administrateurs
 CREATE TABLE administrateurs (
     id INT PRIMARY KEY,
-    poste VARCHAR(100),
     departement VARCHAR(100),
+    poste VARCHAR(100),
+    permissions TEXT,                       -- stocke une liste séparée par des virgules
     niveau_acces INT DEFAULT 3,
     FOREIGN KEY (id) REFERENCES utilisateurs(id) ON DELETE CASCADE
 );
 
--- Table des bâtiments
-CREATE TABLE batiments (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nom VARCHAR(100) NOT NULL,
-    adresse VARCHAR(255),
-    nombre_etages INT DEFAULT 1
+-- 5. Table gestionnaires
+CREATE TABLE gestionnaires (
+    id INT PRIMARY KEY,
+    departement VARCHAR(100),
+    service VARCHAR(100),
+    zone_responsabilite VARCHAR(100),
+    FOREIGN KEY (id) REFERENCES utilisateurs(id) ON DELETE CASCADE
 );
 
--- Table des salles
+-- 6. Table salles (sans table batiments dédiée)
 CREATE TABLE salles (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    numero VARCHAR(20) NOT NULL,
+    code VARCHAR(20) UNIQUE NOT NULL,
+    nom VARCHAR(100),
+    batiment VARCHAR(50),
+    etage INT,
     capacite INT NOT NULL,
     type VARCHAR(50),
-    batiment_id INT,
-    etage INT DEFAULT 0,
-    disponible BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (batiment_id) REFERENCES batiments(id) ON DELETE SET NULL
+    equipements TEXT,
+    statut VARCHAR(20) DEFAULT 'DISPONIBLE'
 );
 
--- Table des équipements
-CREATE TABLE equipements (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nom VARCHAR(100) NOT NULL,
-    salle_id INT,
-    FOREIGN KEY (salle_id) REFERENCES salles(id) ON DELETE CASCADE
-);
-
--- Table des cours
+-- 7. Table cours
 CREATE TABLE cours (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    matiere VARCHAR(100) NOT NULL,
-    enseignant_id INT,
-    salle_id INT,
-    classe VARCHAR(50) NOT NULL,
-    groupe VARCHAR(50),
-    jour VARCHAR(20),
-    heure_debut TIME,
-    duree INT,
+    code VARCHAR(20) UNIQUE NOT NULL,
+    intitule VARCHAR(200) NOT NULL,
     description TEXT,
-    statut VARCHAR(20) DEFAULT 'Planifié',
-    FOREIGN KEY (enseignant_id) REFERENCES enseignants(id) ON DELETE SET NULL,
-    FOREIGN KEY (salle_id) REFERENCES salles(id) ON DELETE SET NULL
+    credits INT,
+    heures INT,
+    niveau VARCHAR(50),
+    semestre VARCHAR(20),
+    enseignant_id INT,
+    FOREIGN KEY (enseignant_id) REFERENCES enseignants(id) ON DELETE SET NULL
 );
 
--- Table des réservations ponctuelles
+-- 8. Table réservations
 CREATE TABLE reservations (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    cours_id INT,
     salle_id INT NOT NULL,
-    utilisateur_id INT NOT NULL,
-    motif VARCHAR(255),
-    date_reservation DATE,
-    heure_debut TIME,
-    heure_fin TIME,
-    statut VARCHAR(20) DEFAULT 'En attente',
+    enseignant_id INT,
+    etudiant_id INT,
+    date_reservation DATE NOT NULL,
+    heure_debut TIME NOT NULL,
+    heure_fin TIME NOT NULL,
+    statut VARCHAR(20) DEFAULT 'EN_ATTENTE',
+    motif TEXT,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cours_id) REFERENCES cours(id) ON DELETE SET NULL,
     FOREIGN KEY (salle_id) REFERENCES salles(id) ON DELETE CASCADE,
-    FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id) ON DELETE CASCADE
+    FOREIGN KEY (enseignant_id) REFERENCES enseignants(id) ON DELETE SET NULL,
+    FOREIGN KEY (etudiant_id) REFERENCES etudiants(id) ON DELETE SET NULL
 );
 
--- Index pour améliorer les performances
-CREATE INDEX idx_cours_jour ON cours(jour);
+-- Index pour les performances
+CREATE INDEX idx_utilisateurs_email ON utilisateurs(email);
+CREATE INDEX idx_utilisateurs_role ON utilisateurs(role);
+CREATE INDEX idx_etudiants_numero ON etudiants(numero_etudiant);
 CREATE INDEX idx_cours_enseignant ON cours(enseignant_id);
-CREATE INDEX idx_cours_salle ON cours(salle_id);
 CREATE INDEX idx_reservations_date ON reservations(date_reservation);
+CREATE INDEX idx_reservations_salle ON reservations(salle_id);
