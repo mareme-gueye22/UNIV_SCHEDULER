@@ -14,13 +14,18 @@ public class GestionnaireDashboard extends JFrame {
     private CardLayout cardLayout;
     private JTable tableCours;
     private DefaultTableModel tableModelCours;
+    private JPanel dashboardPanel;  // ← AJOUT : déclaration de la variable manquante
     
     public GestionnaireDashboard() {
-        initUI();
-        chargerDonnees();
+        initUI();  // ← CORRIGÉ : supprimé la ligne incorrecte
     }
     
+    // SUPPRIMÉ : void initUI() { } qui était vide et mal placé
+    // SUPPRIMÉ : chargerDonnees() { } qui était mal déclaré
+    
     private void initUI() {
+        dashboardPanel = new JPanel(); // ← CRÉER ICI
+        dashboardPanel.setLayout(new BorderLayout());
         setTitle("UNIV-SCHEDULER - Administrateur");
         setSize(1300, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -38,7 +43,7 @@ public class GestionnaireDashboard extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
 
-        // Ajout des vues (vérifier qu'aucune n'est null)
+        // Ajout des vues
         JPanel dash = createDashboardPanel();
         if (dash == null) throw new IllegalStateException("dashboardPanel null");
         contentPanel.add(dash, "DASHBOARD");
@@ -46,8 +51,25 @@ public class GestionnaireDashboard extends JFrame {
         JPanel users = createUsersPanel();
         if (users == null) throw new IllegalStateException("usersPanel null");
         contentPanel.add(users, "USERS");
-
-        // ... autres vues ...
+        
+        // Ajout des autres vues
+        JPanel planif = createPlanificationPanel();
+        contentPanel.add(planif, "PLANIF");
+        
+        JPanel salles = createSallesPanel();
+        contentPanel.add(salles, "SALLES");
+        
+        JPanel enseignants = createEnseignantsPanel();
+        contentPanel.add(enseignants, "ENSEIGNANTS");
+        
+        JPanel conflits = createConflitsPanel();
+        contentPanel.add(conflits, "CONFLITS");
+        
+        JPanel rapports = createRapportsPanel();
+        contentPanel.add(rapports, "RAPPORTS");
+        
+        JPanel calendrier = createCalendrierPanel();
+        contentPanel.add(calendrier, "CALENDRIER");
 
         add(contentPanel, BorderLayout.CENTER);
 
@@ -56,16 +78,33 @@ public class GestionnaireDashboard extends JFrame {
     }
     
     private JPanel createUsersPanel() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        String[] colonnes = {"Utilisateur", "Rôle", "Email", "Statut"};
+        Object[][] donnees = {
+            {"admin", "Administrateur", "admin@univ.fr", "Actif"},
+            {"prof1", "Enseignant", "prof1@univ.fr", "Actif"},
+            {"etudiant1", "Étudiant", "etu1@univ.fr", "Actif"}
+        };
+        JTable table = new JTable(donnees, colonnes);
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        return panel;
+    }
 
-	private JPanel createDashboardPanel() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    private JPanel createDashboardPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+        
+        JLabel label = new JLabel("Tableau de bord - Gestionnaire");
+        label.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        panel.add(label);
+        
+        return panel;
+    }
 
-	private JPanel createMenuPanel() {
+    private JPanel createMenuPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(41, 128, 185));
         panel.setPreferredSize(new Dimension(220, 0));

@@ -30,12 +30,32 @@ public class UtilisateurDAO {
 
     // Recherches
     public Utilisateur findByEmail(String email) {
+        System.out.println("=== findByEmail ===");
+        System.out.println("Email recherché: '" + email + "'");
+        
         String sql = "SELECT * FROM utilisateurs WHERE email = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
+            System.out.println("SQL: " + sql);
             ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return mapResultSetToUtilisateur(rs);
-        } catch (SQLException e) { e.printStackTrace(); }
+            
+            if (rs.next()) {
+                System.out.println("Utilisateur trouvé en base !");
+                return mapResultSetToUtilisateur(rs);
+            } else {
+                System.out.println("Aucun utilisateur avec cet email");
+                // Affiche tous les emails de la base pour comparer
+                Statement stmt2 = connection.createStatement();
+                ResultSet rs2 = stmt2.executeQuery("SELECT email FROM utilisateurs");
+                System.out.println("Emails dans la base:");
+                while (rs2.next()) {
+                    System.out.println("  - '" + rs2.getString("email") + "'");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("ERREUR SQL: " + e.getMessage());
+            e.printStackTrace();
+        }
         return null;
     }
 

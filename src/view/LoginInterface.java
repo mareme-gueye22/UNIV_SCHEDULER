@@ -33,6 +33,7 @@ import model.Etudiant;
 import model.Utilisateur;
 import service.AuthService;
 
+
 public class LoginInterface extends JFrame {
 
     private static final long serialVersionUID = 1L;
@@ -55,6 +56,7 @@ public class LoginInterface extends JFrame {
     public LoginInterface() {
         initUI();
     }
+    
     
     @SuppressWarnings("unused")
 	private void initUI() {
@@ -257,12 +259,16 @@ public class LoginInterface extends JFrame {
     }
     
     @SuppressWarnings("unused")
-	private void handleLogin() {
+    private void handleLogin() {
         String email = userField.getText().trim();
         String password = new String(passwordField.getPassword());
         
+        System.out.println("=== TEST CONNEXION ===");
+        System.out.println("Email: " + email);
+        System.out.println("Password: " + password);
+        
         if (email.isEmpty() || password.isEmpty()) {
-            messageLabel.setForeground(Color.RED);
+            System.out.println("Champs vides");
             messageLabel.setText("❌ Veuillez remplir tous les champs");
             return;
         }
@@ -270,17 +276,15 @@ public class LoginInterface extends JFrame {
         AuthService authService = new AuthService();
         Utilisateur utilisateur = authService.login(email, password);
         
+        System.out.println("Utilisateur trouvé: " + (utilisateur != null));
+        
         if (utilisateur != null) {
-            messageLabel.setForeground(new Color(34, 139, 34));
-            messageLabel.setText("✅ Connexion réussie !");
-            Timer timer = new Timer(1000, ev -> {
-                dispose();
-                redirectToDashboard(utilisateur);
-            });
-            timer.setRepeats(false);
-            timer.start();
+            System.out.println("Rôle: " + utilisateur.getRole());
+            System.out.println("Tentative d'ouverture du dashboard...");
+            dispose();
+            redirectToDashboard(utilisateur);
         } else {
-            messageLabel.setForeground(Color.RED);
+            System.out.println("Échec authentification");
             messageLabel.setText("❌ Email ou mot de passe incorrect");
         }
     }
